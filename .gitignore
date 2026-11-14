@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.spec
+
+# Gunbound server temporary/dynamic data
+Temporarios/
+Requisitos.txt
+IP.txt
+last_ip.txt
+
+# Server logs
+Servidor/HTTP/logs/*.log
+!Servidor/HTTP/logs/.gitkeep
+
+# Generated client archive
+Servidor/HTTP/client/ZIP_GunboundCliente.zip
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+*.lnk
+.vscode/
+.idea/

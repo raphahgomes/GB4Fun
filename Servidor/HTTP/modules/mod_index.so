@@ -1,0 +1,180 @@
+<?php
+ini_set('memory_limit', '-1');
+ini_set('max_execution_time', '600');
+set_time_limit(600);
+
+@mkdir("GunboundCliente", 777);
+
+class GoodZipArchive extends ZipArchive {
+public function __construct($a=false, $b=false) { $this->create_func($a, $b);  }
+public function create_func($input_folder=false, $output_zip_file=false){
+if($input_folder !== false && $output_zip_file !== false){
+$res = $this->open($output_zip_file, ZipArchive::CREATE);
+if($res === TRUE)   { $this->addDir($input_folder, basename($input_folder)); $this->close(); }
+else{ echo 'Could not create a zip archive. Contact Admin.'; }
+}
+}
+public function addDir($location, $name) {
+$this->addEmptyDir($name);
+$this->addDirDo($location, $name);
+}
+private function addDirDo($location, $name) {
+$name .= '/'; $location .= '/';
+$dir = opendir ($location);
+while ($file = readdir($dir)){
+if ($file == '.' || $file == '..') continue;
+$do = (filetype( $location . $file) == 'dir') ? 'addDir' : 'addFile';
+$this->$do($location . $file, $name . $file);
+}
+} 
+}
+
+function Descompactar($arquivo, $local){
+$zip = new ZipArchive;
+if ($zip->open($arquivo) === TRUE) {
+$zip->extractTo($local);
+$zip->close();
+file_put_contents($local."/Arquivos/IP.txt", trim(file_get_contents("IP.txt")));
+}
+}
+
+if(isset($_GET['baixar'])){
+    $current_ip = file_exists("IP.txt") ? trim(file_get_contents("IP.txt")) : "";
+    $last_built_ip = file_exists("last_ip.txt") ? trim(file_get_contents("last_ip.txt")) : "";
+    
+    if(!file_exists("GunboundCliente.zip") || empty($last_built_ip) || $current_ip !== $last_built_ip){
+        if(file_exists("ZIP_GunboundCliente.zip")){
+            Descompactar("ZIP_GunboundCliente.zip","GunboundCliente");
+            new GoodZipArchive("GunboundCliente", "GunboundCliente.zip");
+            file_put_contents("last_ip.txt", $current_ip);
+        }
+    }
+    echo'<div style="margin-top:20px;">
+        <p style="color:#4ade80;font-weight:bold;font-size:1.1em;">✓ O cliente do GB4Fun está pronto!</p>
+        <a href="GunboundCliente.zip" class="btn">⬇ CLIQUE AQUI PARA BAIXAR</a>
+    </div>';
+    exit();
+}
+
+
+echo'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<title>GB4Fun - Download do Jogo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    padding: 20px;
+    background: #0f172a;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+.card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+    text-align: center;
+}
+h1 {
+    margin-top: 0;
+    color: #38bdf8;
+    font-size: 28px;
+    letter-spacing: 1px;
+}
+p {
+    color: #94a3b8;
+    line-height: 1.6;
+    font-size: 15px;
+}
+.btn {
+    display: inline-block;
+    background: #0284c7;
+    color: #ffffff;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+.btn:hover {
+    background: #0369a1;
+}
+.tip-box {
+    background: #0f172a;
+    border-left: 4px solid #38bdf8;
+    padding: 12px 16px;
+    margin-top: 25px;
+    text-align: left;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #cbd5e1;
+}
+.footer {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #64748b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>🎮 GB4Fun</h1>
+    <p>Servidor Clássico de Gunbound Thor\'s Hammer</p>
+    
+    <div id="ajax">
+        <p>Preparando os arquivos do jogo para este servidor... aguarde alguns segundos<span id="wait">.</span></p>
+    </div>
+
+    <div class="tip-box">
+        <strong>🎮 Dica para jogar no Controle:</strong><br>
+        Adicione o executável do Gunbound à sua biblioteca da <strong>Steam</strong> (como jogo não-Steam) para habilitar o mapeamento de controle (Xbox, PlayStation ou genérico).
+    </div>
+
+    <div class="footer">
+        GB4Fun &bull; Servidor pronto para jogar
+    </div>
+</div>
+
+<script>
+function baixar() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("ajax").innerHTML = this.responseText;
+        }
+    };
+    xhttp.open("GET", "?baixar=" + new Date().getTime(), true);
+    xhttp.send();
+}
+var dots = window.setInterval(function(){
+    var wait = document.getElementById("wait");
+    if(wait) {
+        if(wait.innerHTML.length > 3){
+            wait.innerHTML = "";
+        } else {
+            wait.innerHTML += ".";
+        }
+    }
+}, 200);
+baixar();
+</script>
+
+</body>
+</html>
+';
